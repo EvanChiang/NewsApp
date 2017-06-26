@@ -54,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
         protected String doInBackground(URL... params) {
             String result = null;
             URL url = NetworkUtils.makeURL();
-            Log.d(TAG, "url: " + url.toString());
+            Log.d(TAG, "Url: " + url.toString());
             try{
                 result = NetworkUtils.getResponseFromHttpUrl(url);
             }catch (IOException e){

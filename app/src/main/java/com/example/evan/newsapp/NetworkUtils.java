@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 import static android.content.ContentValues.TAG;
@@ -35,13 +36,18 @@ public class NetworkUtils {
         URL url = null;
         try{
             String urlString = uri.toString();
-            Log.d(TAG,"Url: " + urlString);
             url = new URL(uri.toString());
         }catch(MalformedURLException e){
             e.printStackTrace();
         }
 
         return url;
+    }
+
+    private ArrayList<NewsItem> parseJSON(String jsonFile)
+    {
+        
+        return null;
     }
 
     public static String getResponseFromHttpUrl(URL url) throws IOException {
