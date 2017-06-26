@@ -3,6 +3,10 @@ package com.example.evan.newsapp;
 import android.net.Uri;
 import android.util.Log;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOError;
 import java.io.IOException;
 import java.io.InputStream;
@@ -44,10 +48,24 @@ public class NetworkUtils {
         return url;
     }
 
-    private ArrayList<NewsItem> parseJSON(String jsonFile)
+    public static ArrayList<NewsItem> parseJSON(String jsonFile) throws JSONException
     {
-        
-        return null;
+        ArrayList<NewsItem> newsItems = new ArrayList<>();
+        JSONObject json = new JSONObject(jsonFile);
+        JSONArray articles = json.getJSONArray("articles");
+
+        for (int i = 0; i < articles.length(); i++)
+        {
+            JSONObject article = articles.getJSONObject(i);
+            NewsItem newsItem = new NewsItem(article.getString("author"),
+                                            article.getString("title"),
+                                            article.getString("description"),
+                                            article.getString("url"),
+                                            article.getString("urlToImage"),
+                                            article.getString("publishedAt"));
+            newsItems.add(newsItem);
+        }
+        return newsItems;
     }
 
     public static String getResponseFromHttpUrl(URL url) throws IOException {

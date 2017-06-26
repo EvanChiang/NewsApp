@@ -19,4 +19,22 @@ public class NewsItem {
         this.urlToImage = urlToImage;
         this.publishedAt = publishedAt;
     }
+
+    public String getPublishedAt() { return publishedAt; }
+
+    public String getUrlToImage() { return urlToImage; }
+
+    public String getUrl() { return url; }
+
+    public String getAuthor(){
+        return author;
+    }
+
+    public String getTitle(){
+        return title;
+    }
+
+    public String getDescription(){
+        return description;
+    }
 }
