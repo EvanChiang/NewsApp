@@ -1,5 +1,7 @@
 package com.example.evan.newsapp;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -12,10 +14,12 @@ import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import org.json.JSONException;
 import org.w3c.dom.Text;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
     public static final String TAG = "mainActivity";
@@ -33,8 +37,6 @@ public class MainActivity extends AppCompatActivity {
         LinearLayoutManager layout = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
         recyclerView.setLayoutManager(layout);
         recyclerView.setHasFixedSize(true);
-        newsItemAdapter = new NewsItemAdapter();
-        recyclerView.setAdapter(newsItemAdapter);
     }
 
     @Override
@@ -50,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-    class NetworkTask extends AsyncTask<URL, Void, String>
+    class NetworkTask extends AsyncTask<URL, Void, ArrayList<NewsItem>>
     {
         @Override
         protected void onPreExecute() {
@@ -59,26 +61,46 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        protected String doInBackground(URL... params) {
-            String result = null;
+        protected ArrayList<NewsItem> doInBackground(URL... params) {
+            ArrayList<NewsItem> result = null;
             URL url = NetworkUtils.makeURL();
             Log.d(TAG, "Url: " + url.toString());
             try{
-                result = NetworkUtils.getResponseFromHttpUrl(url);
+                String json = NetworkUtils.getResponseFromHttpUrl(url);
+                result = NetworkUtils.parseJSON(json);
+
             }catch (IOException e){
+                e.printStackTrace();
+            }catch (JSONException e){
                 e.printStackTrace();
             }
             return result;
         }
 
         @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
+        protected void onPostExecute(final ArrayList<NewsItem> data) {
+            super.onPostExecute(data);
             progress.setVisibility(View.GONE);
-//            if (s == null)
-//                textView.setText("no text");
-//            else
-//                textView.setText(s);
+
+            if (data != null)
+            {
+                newsItemAdapter = new NewsItemAdapter(data, new NewsItemAdapter.ItemClickListener() {
+                    @Override
+                    public void onItemClick(int itemIndex) {
+                        String url = data.get(itemIndex).getUrl();
+                        openWebPage(url);
+                        Log.d(TAG, String.format("Url %s", url));
+                    }
+                });
+                recyclerView.setAdapter(newsItemAdapter);
+            }
+        }
+
+        private void openWebPage(String url){
+            Uri webpage = Uri.parse(url);
+            Intent intent = new Intent(Intent.ACTION_VIEW, webpage);
+            if (intent.resolveActivity(getPackageManager()) != null)
+                startActivity(intent);
         }
     }
 }

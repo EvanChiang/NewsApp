@@ -9,6 +9,7 @@ import android.widget.TextView;
 
 import org.w3c.dom.Text;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -17,7 +18,18 @@ import java.util.List;
 
 public class NewsItemAdapter extends RecyclerView.Adapter<NewsItemAdapter.NewsItemViewHolder> {
 
-    private String[] newsItemData;
+    private ArrayList<NewsItem> newsItemData;
+    private ItemClickListener listener;
+
+    public NewsItemAdapter(ArrayList<NewsItem> data, ItemClickListener listener)
+    {
+        newsItemData = data;
+        this.listener = listener;
+    }
+
+    public interface ItemClickListener{
+        void onItemClick(int itemIndex);
+    }
 
     @Override
     public NewsItemViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -31,8 +43,7 @@ public class NewsItemAdapter extends RecyclerView.Adapter<NewsItemAdapter.NewsIt
 
     @Override
     public void onBindViewHolder(NewsItemViewHolder holder, int position) {
-        String text = newsItemData[position];
-        holder.newsItemTextViewTitle.setText(text);
+        holder.bind(position);
     }
 
     @Override
@@ -40,16 +51,11 @@ public class NewsItemAdapter extends RecyclerView.Adapter<NewsItemAdapter.NewsIt
         if (newsItemData == null)
             return 0;
         else
-            return newsItemData.length;
+            return newsItemData.size();
     }
 
-    public void setNewsItemData(String[] data)
-    {
-        newsItemData = data;
-        notifyDataSetChanged();
-    }
 
-    public class NewsItemViewHolder extends RecyclerView.ViewHolder {
+    public class NewsItemViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
 
         public final TextView newsItemTextViewTitle;
         public final TextView newsItemTextViewDescription;
@@ -61,6 +67,21 @@ public class NewsItemAdapter extends RecyclerView.Adapter<NewsItemAdapter.NewsIt
             newsItemTextViewTitle = (TextView) view.findViewById(R.id.article_title);
             newsItemTextViewDescription = (TextView) view.findViewById(R.id.article_description);
             newsItemTextViewTime = (TextView) view.findViewById(R.id.article_time);
+            view.setOnClickListener(this);
+        }
+
+        public void bind(int index)
+        {
+            NewsItem item = newsItemData.get(index);
+            newsItemTextViewTitle.setText(item.getTitle());
+            newsItemTextViewDescription.setText(item.getDescription());
+            newsItemTextViewTime.setText((new java.util.Date()).toString());
+        }
+
+        @Override
+        public void onClick(View v) {
+            int index = getAdapterPosition();
+            listener.onItemClick(index);
         }
     }
 }
