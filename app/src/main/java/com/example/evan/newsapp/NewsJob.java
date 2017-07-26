@@ -1,16 +1,18 @@
 package com.example.evan.newsapp;
 
-import android.app.job.JobParameters;
-import android.app.job.JobService;
+
 import android.os.AsyncTask;
 import android.widget.Toast;
+
+import com.firebase.jobdispatcher.JobParameters;
+import com.firebase.jobdispatcher.JobService;
 
 /**
  * Created by EVAN on 7/25/2017.
  */
 
 //created the NewsJob class to handle Services for the app
-public class NewsJob extends JobService{
+public class NewsJob extends JobService {
 
     private AsyncTask mBackgroundTask;
 
