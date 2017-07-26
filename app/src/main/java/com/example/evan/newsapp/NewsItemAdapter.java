@@ -77,8 +77,8 @@ public class NewsItemAdapter extends RecyclerView.Adapter<NewsItemAdapter.NewsIt
         public void bind(int index)
         {
             cursor.moveToPosition(index);
-            newsItemTextViewTitle.setText(cursor.getString(cursor.getColumnIndex(Contract.TABLES_ITEMS.COLUMN_NAME_TITLE)));
-            newsItemTextViewDescription.setText(cursor.getString(cursor.getColumnIndex(Contract.TABLES_ITEMS.COLUMN_NAME_DESCRIPTION)));
+            newsItemTextViewTitle.setText(cursor.getString(cursor.getColumnIndex(Contract.TABLE_ITEMS.COLUMN_NAME_TITLE)));
+            newsItemTextViewDescription.setText(cursor.getString(cursor.getColumnIndex(Contract.TABLE_ITEMS.COLUMN_NAME_DESCRIPTION)));
             newsItemTextViewTime.setText((new java.util.Date()).toString());
 
         }

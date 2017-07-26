@@ -3,6 +3,7 @@ package com.example.evan.newsapp;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Network;
+import android.provider.ContactsContract;
 
 import com.example.evan.newsapp.data.DBHelper;
 import com.example.evan.newsapp.data.DatabaseUtils;

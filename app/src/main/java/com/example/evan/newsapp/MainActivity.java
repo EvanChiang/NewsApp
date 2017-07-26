@@ -2,7 +2,6 @@ package com.example.evan.newsapp;
 
 import android.content.Intent;
 import android.database.Cursor;
-import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -21,6 +20,7 @@ import android.widget.ProgressBar;
 
 import com.example.evan.newsapp.data.Contract;
 import com.example.evan.newsapp.data.DBHelper;
+import com.example.evan.newsapp.data.DatabaseUtils;
 import com.example.evan.newsapp.data.NewsItem;
 
 import org.json.JSONException;
@@ -38,6 +38,8 @@ public class MainActivity extends AppCompatActivity
     private NewsItemAdapter newsItemAdapter;
     private Cursor cursor; // added database and cursor objects
     private SQLiteDatabase db;
+
+    private static final int NEWS_LOADER = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,8 +77,9 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        NetworkTask task = new NetworkTask();
-        task.execute();
+        int itemId = item.getItemId();
+        if (itemId == R.id.search)
+            load();
         return true;
     }
 
@@ -90,7 +93,7 @@ public class MainActivity extends AppCompatActivity
     // when loading, creates asynctasks to show loading bar and to refresh the articles
     @Override
     public Loader<Void> onCreateLoader(int id, Bundle args) {
-        return new AsyncTaskLoader<Void>() {
+        return new AsyncTaskLoader<Void>(this) {
             @Override
             protected void onStartLoading() {
                 super.onStartLoading();
@@ -102,7 +105,7 @@ public class MainActivity extends AppCompatActivity
                 RefreshTasks.refreshArticles(MainActivity.this);
                 return null;
             }
-        }
+        };
     }
 
     //after loading, load new newsItems from the database and update the recyclerview
