@@ -1,16 +1,17 @@
 package com.example.evan.newsapp;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import org.w3c.dom.Text;
+import com.example.evan.newsapp.data.Contract;
+import com.example.evan.newsapp.data.NewsItem;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by Evan on 6/26/2017.
@@ -18,17 +19,21 @@ import java.util.List;
 
 public class NewsItemAdapter extends RecyclerView.Adapter<NewsItemAdapter.NewsItemViewHolder> {
 
-    private ArrayList<NewsItem> newsItemData;
-    private ItemClickListener listener;
 
-    public NewsItemAdapter(ArrayList<NewsItem> data, ItemClickListener listener)
+    private ItemClickListener listener;
+    private Cursor cursor;
+    private Context context;
+    public static final String TAG = "newsItemAdapter";
+
+    //updated the adapter to have cursors for the database instead of an arraylist of data
+    public NewsItemAdapter(Cursor cursor, ItemClickListener listener)
     {
-        newsItemData = data;
+        this.cursor = cursor;
         this.listener = listener;
     }
 
     public interface ItemClickListener{
-        void onItemClick(int itemIndex);
+        void onItemClick(Cursor cursor, int itemIndex);
     }
 
     @Override
@@ -46,12 +51,10 @@ public class NewsItemAdapter extends RecyclerView.Adapter<NewsItemAdapter.NewsIt
         holder.bind(position);
     }
 
+    //updated with cursor
     @Override
     public int getItemCount() {
-        if (newsItemData == null)
-            return 0;
-        else
-            return newsItemData.size();
+        return cursor.getCount();
     }
 
 
@@ -70,18 +73,20 @@ public class NewsItemAdapter extends RecyclerView.Adapter<NewsItemAdapter.NewsIt
             view.setOnClickListener(this);
         }
 
+        //binds the views with the database columns
         public void bind(int index)
         {
-            NewsItem item = newsItemData.get(index);
-            newsItemTextViewTitle.setText(item.getTitle());
-            newsItemTextViewDescription.setText(item.getDescription());
+            cursor.moveToPosition(index);
+            newsItemTextViewTitle.setText(cursor.getString(cursor.getColumnIndex(Contract.TABLES_ITEMS.COLUMN_NAME_TITLE)));
+            newsItemTextViewDescription.setText(cursor.getString(cursor.getColumnIndex(Contract.TABLES_ITEMS.COLUMN_NAME_DESCRIPTION)));
             newsItemTextViewTime.setText((new java.util.Date()).toString());
+
         }
 
         @Override
         public void onClick(View v) {
             int index = getAdapterPosition();
-            listener.onItemClick(index);
+            listener.onItemClick(cursor, index);
         }
     }
 }

@@ -1,8 +1,14 @@
 package com.example.evan.newsapp;
 
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.DatabaseUtils;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.AsyncTaskLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -12,20 +18,26 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
-import android.widget.TextView;
+
+import com.example.evan.newsapp.data.Contract;
+import com.example.evan.newsapp.data.DBHelper;
+import com.example.evan.newsapp.data.NewsItem;
 
 import org.json.JSONException;
-import org.w3c.dom.Text;
 
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity {
+//changed MainActivity to implement the LoaderManager and NewsItemAdapter
+public class MainActivity extends AppCompatActivity
+        implements LoaderManager.LoaderCallbacks<Void>, NewsItemAdapter.ItemClickListener{
     public static final String TAG = "mainActivity";
     private ProgressBar progress;
     private RecyclerView recyclerView;
     private NewsItemAdapter newsItemAdapter;
+    private Cursor cursor; // added database and cursor objects
+    private SQLiteDatabase db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +49,22 @@ public class MainActivity extends AppCompatActivity {
         LinearLayoutManager layout = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
         recyclerView.setLayoutManager(layout);
         recyclerView.setHasFixedSize(true);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        db = new DBHelper(MainActivity.this).getReadableDatabase(); //initializing database objects
+        cursor = DatabaseUtils.getAll(db);
+        newsItemAdapter = new NewsItemAdapter(cursor, this);
+        recyclerView.setAdapter(newsItemAdapter);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        db.close(); // close database
+        cursor.close();
     }
 
     @Override
@@ -52,55 +80,95 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-    class NetworkTask extends AsyncTask<URL, Void, ArrayList<NewsItem>>
-    {
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            progress.setVisibility(View.VISIBLE);
-        }
+    private void openWebPage(String url){
+        Uri webpage = Uri.parse(url);
+        Intent intent = new Intent(Intent.ACTION_VIEW, webpage);
+        if (intent.resolveActivity(getPackageManager()) != null)
+            startActivity(intent);
+    }
 
-        @Override
-        protected ArrayList<NewsItem> doInBackground(URL... params) {
-            ArrayList<NewsItem> result = null;
-            URL url = NetworkUtils.makeURL();
-            Log.d(TAG, "Url: " + url.toString());
-            try{
-                String json = NetworkUtils.getResponseFromHttpUrl(url);
-                result = NetworkUtils.parseJSON(json);
-
-            }catch (IOException e){
-                e.printStackTrace();
-            }catch (JSONException e){
-                e.printStackTrace();
+    // when loading, creates asynctasks to show loading bar and to refresh the articles
+    @Override
+    public Loader<Void> onCreateLoader(int id, Bundle args) {
+        return new AsyncTaskLoader<Void>() {
+            @Override
+            protected void onStartLoading() {
+                super.onStartLoading();
+                progress.setVisibility(View.VISIBLE);
             }
-            return result;
-        }
 
-        @Override
-        protected void onPostExecute(final ArrayList<NewsItem> data) {
-            super.onPostExecute(data);
-            progress.setVisibility(View.GONE);
-
-            if (data != null)
-            {
-                newsItemAdapter = new NewsItemAdapter(data, new NewsItemAdapter.ItemClickListener() {
-                    @Override
-                    public void onItemClick(int itemIndex) {
-                        String url = data.get(itemIndex).getUrl();
-                        openWebPage(url);
-                        Log.d(TAG, String.format("Url %s", url));
-                    }
-                });
-                recyclerView.setAdapter(newsItemAdapter);
+            @Override
+            public Void loadInBackground() {
+                RefreshTasks.refreshArticles(MainActivity.this);
+                return null;
             }
-        }
-
-        private void openWebPage(String url){
-            Uri webpage = Uri.parse(url);
-            Intent intent = new Intent(Intent.ACTION_VIEW, webpage);
-            if (intent.resolveActivity(getPackageManager()) != null)
-                startActivity(intent);
         }
     }
+
+    //after loading, load new newsItems from the database and update the recyclerview
+    @Override
+    public void onLoadFinished(Loader<Void> loader, Void data) {
+        progress.setVisibility(View.GONE);
+        db = new DBHelper(MainActivity.this).getReadableDatabase();
+        cursor = DatabaseUtils.getAll(db);
+        newsItemAdapter = new NewsItemAdapter(cursor, this);
+        recyclerView.setAdapter(newsItemAdapter);
+        newsItemAdapter.notifyDataSetChanged();
+
+    }
+
+    // this was left blank in the example
+    @Override
+    public void onLoaderReset(Loader<Void> loader) {
+
+    }
+
+    //opens the article url when the item is clicked
+    @Override
+    public void onItemClick(Cursor cursor, int itemIndex) {
+        cursor.moveToPosition(itemIndex);
+        String url = cursor.getString(cursor.getColumnIndex(Contract.TABLE_ITEMS.COLUMN_NAME_URL));
+        Log.d(TAG, String.format("Url %s", url));
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setData(Uri.parse(url));
+        startActivity(intent);
+    }
+
+
+    //not 100% sure what this is for. My best guess is it forces the mainActivity to reload
+    public void load() {
+        LoaderManager loaderManager = getSupportLoaderManager();
+        loaderManager.restartLoader(NEWS_LOADER, null, this).forceLoad();
+    }
+
+    //    class NetworkTask extends AsyncTask<URL, Void, ArrayList<NewsItem>>
+//    {
+//        @Override
+//        protected void onPreExecute() {
+//            super.onPreExecute();
+//            progress.setVisibility(View.VISIBLE);
+//        }
+//
+//        @Override
+//        protected ArrayList<NewsItem> doInBackground(URL... params) {
+//            ArrayList<NewsItem> result = null;
+//            URL url = NetworkUtils.makeURL();
+//            Log.d(TAG, "Url: " + url.toString());
+//            try{
+//                String json = NetworkUtils.getResponseFromHttpUrl(url);
+//                result = NetworkUtils.parseJSON(json);
+//
+//            }catch (IOException e){
+//                e.printStackTrace();
+//            }catch (JSONException e){
+//                e.printStackTrace();
+//            }
+//            return result;
+//        }
+//
+//        @Override
+//        protected void onPostExecute(final ArrayList<NewsItem> data) {
+//
+//        }
+//    }
 }
