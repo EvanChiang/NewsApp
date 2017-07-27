@@ -23,14 +23,14 @@ public class DBHelper extends SQLiteOpenHelper{
     //creating the SQL database table
     @Override
     public void onCreate(SQLiteDatabase db) {
-        String queryString = "CREATE TABLE" + Contract.TABLE_ITEMS.TABLE_NAME + " (" +
+        String queryString = "CREATE TABLE " + Contract.TABLE_ITEMS.TABLE_NAME + " (" +
                 Contract.TABLE_ITEMS._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 Contract.TABLE_ITEMS.COLUMN_NAME_TITLE + " TEXT NOT NULL, " +
                 Contract.TABLE_ITEMS.COLUMN_NAME_AUTHOR + " TEXT, " +
                 Contract.TABLE_ITEMS.COLUMN_NAME_DESCRIPTION + " TEXT, " +
                 Contract.TABLE_ITEMS.COLUMN_NAME_PUBLISHEDAT + " TEXT, " +
                 Contract.TABLE_ITEMS.COLUMN_NAME_URL + " TEXT, " +
-                Contract.TABLE_ITEMS.COLUMN_NAME_URLTOIMAGE + " TEXT, " +
+                Contract.TABLE_ITEMS.COLUMN_NAME_URLTOIMAGE + " TEXT " +
                 "); ";
 
         Log.d(TAG, "Create table SQL: " + queryString);
