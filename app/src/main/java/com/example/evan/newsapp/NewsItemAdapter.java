@@ -3,13 +3,16 @@ package com.example.evan.newsapp;
 import android.content.Context;
 import android.database.Cursor;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.evan.newsapp.data.Contract;
 import com.example.evan.newsapp.data.NewsItem;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
@@ -38,7 +41,7 @@ public class NewsItemAdapter extends RecyclerView.Adapter<NewsItemAdapter.NewsIt
 
     @Override
     public NewsItemViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        Context context = parent.getContext();
+        context = parent.getContext();
         int list_item_id = R.layout.articles_list_item;
         LayoutInflater inflater = LayoutInflater.from(context);
 
@@ -51,7 +54,7 @@ public class NewsItemAdapter extends RecyclerView.Adapter<NewsItemAdapter.NewsIt
         holder.bind(position);
     }
 
-    //updated with cursor
+    //updated with cursor instead of getting from network
     @Override
     public int getItemCount() {
         return cursor.getCount();
@@ -63,6 +66,7 @@ public class NewsItemAdapter extends RecyclerView.Adapter<NewsItemAdapter.NewsIt
         public final TextView newsItemTextViewTitle;
         public final TextView newsItemTextViewDescription;
         public final TextView newsItemTextViewTime;
+        public final ImageView newsItemImageViewImage;
 
         public NewsItemViewHolder(View view)
         {
@@ -70,6 +74,7 @@ public class NewsItemAdapter extends RecyclerView.Adapter<NewsItemAdapter.NewsIt
             newsItemTextViewTitle = (TextView) view.findViewById(R.id.article_title);
             newsItemTextViewDescription = (TextView) view.findViewById(R.id.article_description);
             newsItemTextViewTime = (TextView) view.findViewById(R.id.article_time);
+            newsItemImageViewImage = (ImageView) view.findViewById(R.id.article_image);
             view.setOnClickListener(this);
         }
 
@@ -80,6 +85,13 @@ public class NewsItemAdapter extends RecyclerView.Adapter<NewsItemAdapter.NewsIt
             newsItemTextViewTitle.setText(cursor.getString(cursor.getColumnIndex(Contract.TABLE_ITEMS.COLUMN_NAME_TITLE)));
             newsItemTextViewDescription.setText(cursor.getString(cursor.getColumnIndex(Contract.TABLE_ITEMS.COLUMN_NAME_DESCRIPTION)));
             newsItemTextViewTime.setText((new java.util.Date()).toString());
+            String url = cursor.getString(cursor.getColumnIndex(Contract.TABLE_ITEMS.COLUMN_NAME_URLTOIMAGE));
+            Log.d(TAG, "urlToImage: " + url);
+            if (url != null){
+                Picasso.with(context) //adding image using picasso
+                        .load(url)
+                        .into(newsItemImageViewImage);
+            }
 
         }
 

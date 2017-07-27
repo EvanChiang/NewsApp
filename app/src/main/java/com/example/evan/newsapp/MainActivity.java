@@ -64,6 +64,12 @@ public class MainActivity extends AppCompatActivity
             editor.commit();
         }
         ScheduleUtilities.scheduleRefresh(this);
+
+        // loading what's currently in the db into the RV for display
+        db = new DBHelper(MainActivity.this).getReadableDatabase(); //initializing database objects
+        cursor = DatabaseUtils.getAll(db);
+        newsItemAdapter = new NewsItemAdapter(cursor, this);
+        recyclerView.setAdapter(newsItemAdapter);
     }
 
     @Override
@@ -96,14 +102,7 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-    private void openWebPage(String url){
-        Uri webpage = Uri.parse(url);
-        Intent intent = new Intent(Intent.ACTION_VIEW, webpage);
-        if (intent.resolveActivity(getPackageManager()) != null)
-            startActivity(intent);
-    }
-
-    // when loading, creates asynctasks to show loading bar and to refresh the articles
+    // when loading, creates asyncTaskLoader to show loading bar and to refresh the articles, replcaed AsyncTask
     @Override
     public Loader<Void> onCreateLoader(int id, final Bundle args) {
         return new AsyncTaskLoader<Void>(this) {
@@ -130,7 +129,6 @@ public class MainActivity extends AppCompatActivity
         newsItemAdapter = new NewsItemAdapter(cursor, this);
         recyclerView.setAdapter(newsItemAdapter);
         newsItemAdapter.notifyDataSetChanged();
-
     }
 
     // this was left blank in the example
