@@ -25,8 +25,7 @@ public class ScheduleUtilities {
     private static boolean sInitialized;
 
     synchronized public static void scheduleRefresh(@NonNull final Context context){
-        if (sInitialized)
-            return;
+        if (sInitialized) return;
 
         Driver driver = new GooglePlayDriver(context);
         FirebaseJobDispatcher dispatcher = new FirebaseJobDispatcher(driver);
@@ -37,7 +36,8 @@ public class ScheduleUtilities {
                 .setConstraints(Constraint.ON_ANY_NETWORK)
                 .setLifetime(Lifetime.FOREVER)
                 .setRecurring(true)
-                .setTrigger(Trigger.executionWindow(SCHEDULE_INTERVAL_MINUTES, SCHEDULE_INTERVAL_MINUTES + SYNC_FLEXTIME_SECONDS))
+                .setTrigger(Trigger.executionWindow(SCHEDULE_INTERVAL_MINUTES,
+                        SCHEDULE_INTERVAL_MINUTES + SYNC_FLEXTIME_SECONDS))
                 .setReplaceCurrent(true)
                 .build();
 

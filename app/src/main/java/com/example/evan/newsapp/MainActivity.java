@@ -1,10 +1,12 @@
 package com.example.evan.newsapp;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
@@ -48,9 +50,20 @@ public class MainActivity extends AppCompatActivity
 
         progress = (ProgressBar) findViewById(R.id.progressBar);
         recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
-        LinearLayoutManager layout = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
-        recyclerView.setLayoutManager(layout);
-        recyclerView.setHasFixedSize(true);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+
+        // checking if installed before, if not create database from network
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        boolean isFirst = prefs.getBoolean("isFirst", true);
+
+        if (isFirst)
+        {
+            load();
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.putBoolean("isFirst", false);
+            editor.commit();
+        }
+        ScheduleUtilities.scheduleRefresh(this);
     }
 
     @Override
@@ -92,7 +105,7 @@ public class MainActivity extends AppCompatActivity
 
     // when loading, creates asynctasks to show loading bar and to refresh the articles
     @Override
-    public Loader<Void> onCreateLoader(int id, Bundle args) {
+    public Loader<Void> onCreateLoader(int id, final Bundle args) {
         return new AsyncTaskLoader<Void>(this) {
             @Override
             protected void onStartLoading() {

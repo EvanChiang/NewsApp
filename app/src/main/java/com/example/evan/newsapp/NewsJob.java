@@ -14,7 +14,7 @@ import com.firebase.jobdispatcher.JobService;
 //created the NewsJob class to handle Services for the app
 public class NewsJob extends JobService {
 
-    private AsyncTask mBackgroundTask;
+    AsyncTask mBackgroundTask;
 
     @Override
     public boolean onStartJob(final JobParameters job) {
